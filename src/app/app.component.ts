@@ -1,7 +1,11 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { AgGridNg2 } from 'ag-grid-angular';
+import { GridOptions } from 'ag-grid';
 import { convertToParamMap } from '@angular/router';
+import { OtherComponent } from "./other.component";
+import { TestComponent } from "./test/test.component";
+
 
 @Component({
   selector: 'app-root',
@@ -11,43 +15,100 @@ import { convertToParamMap } from '@angular/router';
 export class AppComponent {
   @ViewChild('agGrid') agGrid: AgGridNg2;
   title = 'app';
-  columnDefs = [
-    { headerName: 'Make', field: 'make', checkboxSelection: true, editable: true, cellRenderer: null },
-    { headerName: 'Model', field: 'model', editable: true, cellRenderer: null },
-    {
-      headerName: 'Price', field: 'price',
-      editable: true,
-      //onCellDoubleClicked: this.onCellDoubleClicked, 
-      //onCellClicked: this.onCellClicked,   
-      cellRenderer: this.addDuplicateButton
-    }
-  ];
-  gridOptions = {
-    //angularCompileRows: true,
-    columnDefs: this.columnDefs,
-    navigateToNextCell: this.myNavigation,
-    defaultColDef: {
-      // set every column width
-      width: 100,
-      // make every column editable
-      editable: true,
+  private gridOptions: GridOptions;
+  public rowData: any[];
+  private columnDefs: any[];
+  // public mousePointer: any;
 
-    },
-
-
-  }
-
-
-  rowData: any;
 
   constructor(private http: HttpClient) {
+    // this.mousePointer = {
+    //   x1: 0,
+    //   y1: 0,
+    //   x2: 0,
+    //   y2: 0
+    // };
 
+    let _this = this;
+    this.columnDefs = [
+      { headerName: 'Make', field: 'make', checkboxSelection: true, editable: true, cellRenderer: null },
+      { headerName: 'Model', field: 'model', editable: true, cellRenderer: null },
+      {
+        headerName: 'Price', field: 'price',
+        editable: true,
+        //onCellDoubleClicked: this.onCellDoubleClicked, 
+        //onCellClicked: this.onCellClicked, 
+        cellClass: ['duplicable'],
+        cellRenderer: this.addDuplicateButton
+      },
+      {
+        headerName: 'Test', field: 'test', editable: true, cellRenderer: "testRenderer"
+      }
+    ];
+    this.gridOptions = {
+      // angularCompileRows: true,
+      rowData: null,
+      //onCellMouseDown: this.mouseDown,
+      columnDefs: this.columnDefs,
+      //navigateToNextCell: this.myNavigation,
+      frameworkComponents: {
+        testRenderer: TestComponent,        
+    },
+      defaultColDef: {
+        // set every column width
+        width: 100,
+        // make every column editable
+        editable: true,
+
+      },
+
+
+    }
   }
 
+  mouseDown(e) {
+    console.log('mousedown', e);
+    let div = document.getElementById('selection');
+    //TODO : add class "duplicable" test for column restriction
+    div.hidden = false; //Unhide the div
+    console.log(this)
+    let mousePointer ={
+      x1: 0,
+      y1: 0,
+      x2: 0,
+      y2: 0
+    };
 
+    mousePointer.x1 = e.clientX; //Set the initial X
+    mousePointer.y1 = e.clientY; //Set the initial Y
+    console.log('this', this)
+    this.reCalc(mousePointer);
+    document.onmousemove = (data) => {
+      console.log('this2', this)
+      mousePointer.x2 = e.clientX; //Update the current position X
+      mousePointer.y2 = e.clientY; //Update the current position Y
+      this.reCalc(mousePointer);
+    }
+    document.onmouseup = (data) => {
+      console.log('mouseup', this);
+      let div = document.getElementById('selection');
+      div.hidden = true; //Hide the div
+    }
+  }
+  reCalc(mousePointer) { //This will restyle the div
+    let div = document.getElementById('selection');
+    let x3 = Math.min(mousePointer.x1, mousePointer.x2); //Smaller X
+    let x4 = Math.max(mousePointer.x1, mousePointer.x2); //Larger X
+    let y3 = Math.min(mousePointer.y1, mousePointer.y2); //Smaller Y
+    let y4 = Math.max(mousePointer.y1, mousePointer.y2); //Larger Y
+    div.style.left = x3 + 'px';
+    div.style.top = y3 + 'px';
+    div.style.width = x4 - x3 + 'px';
+    div.style.height = y4 - y3 + 'px';
+  }
 
   addDuplicateButton(params) {
-    return '<a data-action-type="drag" ng-click="test3()">' + params.value + '</button>';
+    return params.value;
   }
 
   getSelectedRows() {
