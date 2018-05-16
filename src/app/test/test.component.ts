@@ -1,8 +1,7 @@
 import { Component, ViewChild } from "@angular/core";
 import { IDateParams, PopupSelectCellEditor, EventService } from "ag-grid/main";
-import { IDateAngularComp } from "ag-grid-angular/main";
+import { GridOptions } from "ag-grid/main";
 import { COMPONENT_VARIABLE } from "@angular/platform-browser/src/dom/dom_renderer";
-import { AgGridNg2 } from 'ag-grid-angular';
 
 
 @Component({
@@ -12,9 +11,9 @@ import { AgGridNg2 } from 'ag-grid-angular';
 })
 
 export class TestComponent {
-    @ViewChild('agGrid') agGrid: AgGridNg2;
 
-    private params: IDateParams;
+    public gridOptions: GridOptions;
+    //private params: IDateParams;
     public dd: string = '';
     public mm: string = '';
     public yyyy: string = '';
@@ -26,7 +25,10 @@ export class TestComponent {
         y2: 0
     }
 
-    public overElements: Array<any> = [];
+    public cellDuplication = {
+        cellToDuplicate: {},
+        cellSelection:[]
+    }
 
     agInit(params: any): void {
         this.params = params;
@@ -50,18 +52,21 @@ export class TestComponent {
     //     this.reCalc();
     // }
 
-    mousehover(e){
-        if(this.hisDuplicating){
-            console.log('e ', e)
-        }
-
-    }
+    
 
     mousedown(e) {
 
+        this.hisDuplicating = true;
         console.log('mousedown', e);
         let div = document.getElementById('selectionArray');
-        this.hisDuplicating = true;
+        let currentCell = {};
+        currentCell['id'] = e.target.closest('div[role=gridcell]').getAttribute('col-id');
+        currentCell['rowId'] = e.target.closest('div[role=row]').getAttribute('row-id');
+        this.cellDuplication.cellToDuplicate = currentCell;
+        let rowInfos = {};
+        rowInfos['id'] = e.target.closest('div[role=row]').getAttribute('row-id');
+        rowInfos['index'] = e.target.closest('div[role=row]').getAttribute('row-index');
+        this.cellDuplication.cellSelection.push(rowInfos)
         //TODO : add class "duplicable" test for column restriction
         div.hidden = false; //Unhide the div
         console.log(this)
@@ -73,10 +78,10 @@ export class TestComponent {
         console.log('this', this)
         this.reCalc();
         let mousemoveaction = (e) => {
-            console.log('this2', this)
+            //console.log('this2', this)
             this.mousePointer.x2 = e.clientX; //Update the current position X
             this.mousePointer.y2 = e.clientY; //Update the current position Y
-            console.log('AZEREZRGZERGZERG', this.mousePointer)
+            //console.log('AZEREZRGZERGZERG', this.mousePointer)
 
             this.reCalc();
         }
@@ -100,11 +105,28 @@ export class TestComponent {
                     y2: 0
                 }
                 document.removeEventListener('mouseup', mouseupaction);
-                this.mouseOverDetection(e);
+                document.removeEventListener('mouseover', mouseover)
+                this.applyDuplication();
+                //this.mouseOverDetection(e);
             }
         };
+        let mouseover = (e) => {
+            console.log('thisover', e)
+            if(this.hisDuplicating && e.target.classList.contains('overable')){
+                let rowInfos = {};
+                rowInfos['id'] = e.target.closest('div[role=row]').getAttribute('row-id');
+                rowInfos['index'] = e.target.closest('div[role=row]').getAttribute('row-index');
+                this.cellDuplication.cellSelection.push(rowInfos);
+                console.log('e ', this.cellDuplication );
+                console.log('tesst ', rowInfos );
+
+
+            }
+    
+        }
         document.addEventListener('mousemove', mousemoveaction);
         document.addEventListener('mouseup', mouseupaction);
+        document.addEventListener('mouseover', mouseover)
 
     }
     reCalc() { //This will restyle the div
@@ -122,12 +144,17 @@ export class TestComponent {
         }
     }
 
-    mouseOverDetection(event){
-        console.log('levent', event)
-        let x = event.clientX, y = event.clientY,
-            elementMouseIsOver = document.elementFromPoint(x, y);
-            console.log('currentElement', elementMouseIsOver    );
-            let parent = elementMouseIsOver.parentNode.parentNode;
-            console.log('go for the id',parent)
+    applyDuplication(){
+        console.log('le this', this)
+        //let row = this.
     }
+
+    // mouseOverDetection(event){
+    //     console.log('levent', event)
+    //     let x = event.clientX, y = event.clientY,
+    //         elementMouseIsOver = document.elementFromPoint(x, y);
+    //         console.log('currentElement', elementMouseIsOver    );
+    //         let parent = elementMouseIsOver.parentNode.parentNode;
+    //         console.log('go for the id',parent)
+    // }
 }
