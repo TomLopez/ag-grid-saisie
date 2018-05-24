@@ -2,7 +2,7 @@ import { Component, ViewChild } from "@angular/core";
 import { IDateParams, PopupSelectCellEditor, EventService } from "ag-grid/main";
 import { GridOptions } from "ag-grid/main";
 import { COMPONENT_VARIABLE } from "@angular/platform-browser/src/dom/dom_renderer";
-
+import {Test2000Module} from '../test2000/test2000.module'
 
 @Component({
     selector: 'ag-full-width-grid',
@@ -31,17 +31,15 @@ export class TestComponent {
     }
 
     agInit(params: any): void {
-        this.params = params;
+        //this.params = params;
+        
+        Test2000Module.test();
     }
 
     ngOnDestroy() {
         console.log(`plouf`);
     }
 
-    test() {
-        alert()
-    }
-    
     // mousemoveaction(e)
     // {
     //     console.log('this2', this)
